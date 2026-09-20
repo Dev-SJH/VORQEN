@@ -1,0 +1,14 @@
+defaults:
+  - base
+
+name: "vorqen-tiny"
+
+model:
+  n_embd: 192
+  n_head: 6
+  n_layer: 4
+  block_size: 128
+
+training:
+  batch_size: 32
+  max_steps: 5000
