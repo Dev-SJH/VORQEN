@@ -1,0 +1,29 @@
+[project]
+name = "vorqen"
+version = "0.0.1"
+description = "A small language model built from scratch"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Dev-SJH" }]
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.65.0",
+    "huggingface-hub>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "black", "ruff"]
+data = ["datasets>=2.14.0"]
+
+[project.scripts]
+vorqen = "vorqen.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["vorqen*"]
