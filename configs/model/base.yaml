@@ -1,0 +1,18 @@
+model:
+  block_size: 128
+  n_embd: 192
+  n_head: 6
+  n_layer: 4
+  dropout: 0.1
+  vocab_size: null
+
+training:
+  batch_size: 32
+  lr: 3.0e-4
+  weight_decay: 0.1
+  max_steps: 5000
+  eval_interval: 500
+  eval_iters: 100
+  grad_clip: 1.0
+  warmup_steps: 100
+  seed: 42
