@@ -129,9 +129,65 @@ class BPETokenizer:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
     @classmethod
-    def load(cls, path):
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        vocab = {int(k): v for k, v in data["vocab"].items()}
-        merges = [tuple(m) for m in data["merges"]]
+def train(cls, text, vocab_size=1000, min_freq=5, verbose=True):
+    """텍스트에서 BPE 학습 (드문 글자 필터링 포함)"""
+    from collections import Counter
+
+    # 1. 드문 글자 필터링 (한국어는 글자가 너무 많음)
+    char_counts = Counter(text)
+    valid_chars = {c for c, n in char_counts.items() if n >= min_freq}
+    filtered = "".join(c for c in text if c in valid_chars)
+
+    if verbose:
+        print(f"원본 글자 종류: {len(char_counts)}")
+        print(f"필터 후 (≥{min_freq}회): {len(valid_chars)}")
+
+    # 2. 초기 vocab
+    vocab_set = set(filtered)
+    vocab = {i: ch for i, ch in enumerate(sorted(vocab_set))}
+    merges = []
+    num_merges = vocab_size - len(vocab_set)
+
+    if verbose:
+        print(f"초기 어휘: {len(vocab_set)}")
+        print(f"목표 병합: {num_merges}회")
+
+    if num_merges <= 0:
+        if verbose:
+            print("⚠️  vocab_size가 너무 작음. 병합 건너뜀.")
         return cls(merges, vocab)
+
+    # 3. BPE 병합
+    words = list(filtered)
+    for i in range(num_merges):
+        pairs = Counter(zip(words[:-1], words[1:]))
+        if not pairs:
+            break
+        best_pair, count = pairs.most_common(1)[0]
+        if count < 2:
+            break
+
+        new_word = best_pair[0] + best_pair[1]
+        new_words = []
+        j = 0
+        while j < len(words):
+            if (j < len(words) - 1
+                    and words[j] == best_pair[0]
+                    and words[j + 1] == best_pair[1]):
+                new_words.append(new_word)
+                j += 2
+            else:
+                new_words.append(words[j])
+                j += 1
+        words = new_words
+
+        merges.append(best_pair)
+        vocab[len(vocab)] = new_word
+
+        if verbose and (i + 1) % 100 == 0:
+            print(f"  merge {i+1}/{num_merges} | vocab={len(vocab)}")
+
+    if verbose:
+        print(f"✅ 학습 완료 | 최종 어휘: {len(vocab)}")
+
+    return cls(merges, vocab)
